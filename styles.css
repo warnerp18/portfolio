@@ -727,11 +727,6 @@ footer {
   cursor: pointer;
 }
 
-.copy-button:hover {
-  background: var(--button-pressed-bg);
-  color: var(--text);
-}
-
 /* The check replaces the copy icon only after a successful copy. */
 .copy-button .check-icon,
 .copy-button.is-copied .copy-icon {
@@ -795,9 +790,83 @@ footer {
   border-top-color: var(--tooltip-bg);
 }
 
-.copy-button:hover .tooltip,
 .copy-button:focus-visible .tooltip,
 .copy-button.is-copied .tooltip {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* ==== Hover and pressed states ==== */
+
+/* Transitions live on the resting state so changes fade both in and out. */
+.nav-links,
+.featured-projects-header a,
+.footer-links a,
+.hero .arrow-link,
+.theme-button,
+.copy-button {
+  transition:
+    color var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+/* Hover only with a real pointer, so it doesn't stick after a tap on touch screens. */
+@media (hover: hover) {
+  .nav-links:hover {
+    color: var(--text-muted);
+  }
+
+  /* These start muted, so they brighten instead. */
+  .featured-projects-header a.text-muted:hover,
+  .footer-links a.text-muted:hover {
+    color: var(--text);
+  }
+
+  .hero .arrow-link:hover {
+    border-color: var(--accent);
+  }
+
+  .theme-button:not([aria-pressed="true"]):hover {
+    color: var(--text);
+  }
+
+  .copy-button:hover {
+    background: var(--button-pressed-bg);
+    color: var(--text);
+  }
+
+  .copy-button:hover .tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Movement: the arrow nudge and the press shrink, skipped with reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .arrow-link svg {
+    transition: transform var(--duration-fast);
+  }
+
+  .hero .arrow-link,
+  .theme-button,
+  .copy-button {
+    transition:
+      color var(--duration-fast),
+      background-color var(--duration-fast),
+      border-color var(--duration-fast),
+      transform var(--duration-fast);
+  }
+
+  @media (hover: hover) {
+    .arrow-link:hover svg {
+      transform: translateX(3px);
+    }
+  }
+
+  .hero .arrow-link:active,
+  .theme-button:active,
+  .copy-button:active {
+    transform: scale(0.96);
+  }
 }
