@@ -1,17 +1,20 @@
 # philwarner.dev
 
-My portfolio site. It's still a work in progress. The hero and projects are done, and skills, experience, and the footer are next.
+My portfolio site.
 
 ## Why plain HTML/CSS/JS
 
-No framework and no build step, on purpose. It's a small site, and I wanted to get back to the fundamentals: design tokens, CSS custom properties, and a little vanilla JS. Everything the browser gets is exactly what's in this repo.
+No framework and no build step, on purpose. It's a small site, and I wanted to get back to the fundamentals: design tokens, CSS custom properties, and a little vanilla JS. Everything the browser gets is exactly what's in `src/`.
 
 ## What's in here
 
-- `index.html`: the whole page
-- `styles.css`: tokens up top (colors, spacing, type), then base styles, utilities, and one block per section
-- `main.js`: the light/dark/system theme switch, plus starting the project video (it skips autoplay if you have reduce motion turned on)
-- `assets/`: images, icons, and the RepoPulse demo video
+- `src/`: the site itself, and the only folder that gets deployed
+  - `index.html`: the whole page
+  - `styles.css`: tokens up top (colors, spacing, type), then base styles, utilities, and one block per section
+  - `main.js`: the light/dark/system theme switch, the copy-email button, and starting the project video (it skips autoplay if you have reduce motion turned on)
+  - `assets/`: icons, the favicon, the RepoPulse demo video, and `img/` (generated image sizes)
+- `images/`: full-size originals for the images on the site
+- `scripts/images.js`: turns the originals into the sizes in `src/assets/img/`
 
 A few things I care about:
 
@@ -22,10 +25,20 @@ A few things I care about:
 ## Running it locally
 
 ```sh
-python3 -m http.server 8000
+npm run dev
 ```
 
-Then open http://localhost:8000. You need a server because the paths start with `/`, so opening the file directly won't work.
+Then open http://localhost:8000. It's just `python3 -m http.server` serving `src/`. You need a server because the paths start with `/`, so opening the file directly won't work.
+
+## Images
+
+Originals go in `images/`. Then:
+
+```sh
+npm run images
+```
+
+It uses [sharp](https://sharp.pixelplumbing.com/) to crop each one (per-image shapes live in `CROPS` at the top of the script) and write 800px and full-size versions in AVIF, WebP, and JPEG to `src/assets/img/`, with metadata stripped. The page serves them with `<picture>` and `srcset`, so each browser picks the smallest format and size it can use. Vercel doesn't run the script, so I run it locally and commit the output.
 
 ## Linting and formatting
 
@@ -43,4 +56,4 @@ npm run format:check  # Prettier, just reports
 - [NotWordle](https://notwordle.app/): a full-stack Wordle clone with a PostgreSQL-backed word list
 - [RepoPulse](https://repopulse.tech): explore GitHub repositories through data
 
-Hosted on Vercel.
+Hosted on Vercel, with the project's Root Directory set to `src`.

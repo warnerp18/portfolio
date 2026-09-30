@@ -2,8 +2,8 @@ import sharp from "sharp";
 import { readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
 
-const SRC_DIR = "assets/src";
-const OUT_DIR = "assets/img";
+const SRC_DIR = "images";
+const OUT_DIR = "src/assets/img";
 const WIDTHS = [800, 1600];
 const CROPS = { hero: 1.65, "notwordle-board": 520 / 320 };
 const FORMATS = [
