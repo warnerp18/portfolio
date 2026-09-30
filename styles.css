@@ -496,6 +496,10 @@ header nav {
   gap: 14px;
 }
 
+.featured-project picture {
+  display: contents;
+}
+
 .featured-project-title-row img {
   width: 44px;
   height: 44px;

@@ -5,7 +5,7 @@ import path from "node:path";
 const SRC_DIR = "assets/src";
 const OUT_DIR = "assets/img";
 const WIDTHS = [800, 1600];
-const CROPS = { hero: 1.65 };
+const CROPS = { hero: 1.65, "notwordle-board": 520 / 320 };
 const FORMATS = [
   { format: "avif", ext: "avif", quality: 50 },
   { format: "webp", ext: "webp", quality: 75 },

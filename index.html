@@ -286,10 +286,31 @@
               </svg>
             </a>
           </div>
-          <img
-            class="featured-project-app"
-            src="/assets/notwordle-board.png"
-            alt="NotWordle game board showing a solved puzzle" />
+          <picture>
+            <source
+              type="image/avif"
+              srcset="
+                /assets/img/notwordle-board-800.avif   800w,
+                /assets/img/notwordle-board-1110.avif 1110w
+              "
+              sizes="(min-width: 768px) min(520px, 50vw), calc(100vw - 64px)" />
+            <source
+              type="image/webp"
+              srcset="
+                /assets/img/notwordle-board-800.webp   800w,
+                /assets/img/notwordle-board-1110.webp 1110w
+              "
+              sizes="(min-width: 768px) min(520px, 50vw), calc(100vw - 64px)" />
+            <img
+              class="featured-project-app"
+              src="/assets/img/notwordle-board-1110.jpg"
+              srcset="
+                /assets/img/notwordle-board-800.jpg   800w,
+                /assets/img/notwordle-board-1110.jpg 1110w
+              "
+              sizes="(min-width: 768px) min(520px, 50vw), calc(100vw - 64px)"
+              alt="NotWordle game board showing a solved puzzle" />
+          </picture>
         </div>
         <div class="featured-project">
           <div class="featured-project-left flex-column">
