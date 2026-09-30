@@ -351,11 +351,14 @@ header nav {
 .hero {
   flex-direction: column;
   position: relative;
-  @media (min-width: 768px) {
+  @media (min-width: 980px) {
     flex-direction: row;
     align-items: center;
     min-height: 460px;
   }
+}
+.hero picture {
+  display: contents;
 }
 
 .hero img {
@@ -364,7 +367,7 @@ header nav {
   order: -1;
   height: 240px;
   mask-image: linear-gradient(to bottom, black 60%, transparent);
-  @media (min-width: 768px) {
+  @media (min-width: 980px) {
     position: absolute;
     right: 0;
     top: 0;
@@ -391,8 +394,14 @@ header nav {
 
 .hero-text {
   position: relative;
+  z-index: 1;
   gap: var(--space-5);
   max-width: 560px;
+  /* Space below the photo when stacked. */
+  margin-top: var(--space-4);
+  @media (min-width: 980px) {
+    margin-top: 0;
+  }
 }
 
 .hero .eyebrow {
@@ -411,6 +420,8 @@ header nav {
 }
 
 .hero p {
+  position: relative;
+  z-index: 1;
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   max-width: 480px;

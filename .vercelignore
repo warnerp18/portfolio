@@ -1,0 +1,5 @@
+# In the repo, but not served on the live site.
+# Full-size originals; the sized versions in assets/img are what gets deployed.
+assets/src
+# Image generation script (run locally with `npm run images`).
+scripts

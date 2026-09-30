@@ -74,7 +74,13 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
 
-    <link rel="preload" as="image" href="/assets/hero.jpg" />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      imagesrcset="/assets/img/hero-800.avif 800w, /assets/img/hero-1351.avif 1351w"
+      imagesizes="(min-width: 980px) min(760px, 60vw), 100vw" />
+
     <link rel="stylesheet" href="/styles.css" />
     <script src="/main.js" defer></script>
     <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
@@ -208,7 +214,30 @@
           </a>
         </div>
 
-        <img src="/assets/hero.jpg" alt="" />
+        <picture>
+          <source
+            type="image/avif"
+            srcset="
+              /assets/img/hero-800.avif   800w,
+              /assets/img/hero-1351.avif 1351w
+            "
+            sizes="(min-width: 980px) min(760px, 60vw), 100vw" />
+          <source
+            type="image/webp"
+            srcset="
+              /assets/img/hero-800.webp   800w,
+              /assets/img/hero-1351.webp 1351w
+            "
+            sizes="(min-width: 980px) min(760px, 60vw), 100vw" />
+          <img
+            src="/assets/img/hero-1351.jpg"
+            srcset="
+              /assets/img/hero-800.jpg   800w,
+              /assets/img/hero-1351.jpg 1351w
+            "
+            sizes="(min-width: 980px) min(760px, 60vw), 100vw"
+            alt="" />
+        </picture>
       </section>
       <section class="container featured-projects flex-column">
         <div class="featured-projects-header flex-row">
