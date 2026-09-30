@@ -60,6 +60,7 @@
   --tracking-wide: 0.16em;
 
   /* Radius */
+  --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-full: 999px;
@@ -84,6 +85,9 @@
   --border: var(--gray-100);
   --button-pressed-bg: var(--gray-50);
 
+  --tooltip-bg: var(--gray-900);
+  --tooltip-text: var(--gray-0);
+
   --accent: var(--blue-700);
   --accent-border: var(--blue-200);
 
@@ -103,6 +107,9 @@
     --border: var(--gray-850);
     --button-pressed-bg: var(--gray-850);
 
+    --tooltip-bg: var(--gray-50);
+    --tooltip-text: var(--gray-950);
+
     --accent: var(--blue-400);
     --accent-border: var(--blue-900);
 
@@ -120,6 +127,9 @@
 
   --border: var(--gray-850);
   --button-pressed-bg: var(--gray-850);
+
+  --tooltip-bg: var(--gray-50);
+  --tooltip-text: var(--gray-950);
 
   --accent: var(--blue-400);
   --accent-border: var(--blue-900);
@@ -177,7 +187,8 @@ button {
   font: inherit;
 }
 
-ul {
+ul,
+ol {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -222,12 +233,67 @@ ul {
   flex-direction: column;
 }
 
+/* Section headings (h2). */
+.section-title {
+  font-size: 22px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+
+/* Secondary text color. */
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Small monospace label, e.g. dates. */
+.mono-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-subtle);
+}
+
+/* Outlined, fully rounded chip. Components set the size. */
+.pill {
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-full);
+}
+
+/* Text link with a trailing arrow icon. Components set the color. */
+.arrow-link {
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
 /* ==== Header ==== */
 
+/* Two rows on mobile (name and theme switch, then the nav); one 80px row from 768px. */
 header {
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  height: 80px;
+  row-gap: var(--space-2);
+  padding-block: var(--space-4) var(--space-3);
+  @media (min-width: 768px) {
+    flex-wrap: nowrap;
+    gap: var(--space-8);
+    height: 80px;
+    padding-block: 0;
+  }
+}
+
+header nav {
+  order: 3;
+  flex-basis: 100%;
+  padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--border);
+  @media (min-width: 768px) {
+    order: 0;
+    flex-basis: auto;
+    padding-top: 0;
+    border-top: none;
+  }
 }
 
 .name {
@@ -236,16 +302,16 @@ header {
   letter-spacing: var(--tracking-snug);
   color: var(--text);
   text-decoration: none;
-}
-
-.header-right {
-  align-items: center;
-  gap: var(--space-8);
+  margin-right: auto;
 }
 
 .nav-list {
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-6);
+  min-height: 36px;
+  @media (min-width: 768px) {
+    gap: var(--space-8);
+  }
 }
 
 .nav-links {
@@ -282,11 +348,6 @@ header {
 }
 
 /* ==== Hero ==== */
-/* Room at the end of the page (where the footer will go). */
-main {
-  padding-bottom: var(--space-24);
-}
-
 .hero {
   flex-direction: column;
   position: relative;
@@ -352,7 +413,6 @@ main {
 .hero p {
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
-  color: var(--text-muted);
   max-width: 480px;
 }
 
@@ -362,23 +422,16 @@ main {
 }
 
 .hero li {
-  border: var(--border-width) solid var(--border);
   font-size: 13px;
   padding: 6px 12px;
-  border-radius: var(--radius-full);
   background-color: var(--card-surface);
 }
 
 .hero a {
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
   color: var(--accent);
   border: var(--border-width) solid var(--accent-border);
   border-radius: var(--radius-full);
   padding: var(--space-3) 18px;
-  text-decoration: none;
   align-self: flex-start;
   margin-top: var(--space-2);
 }
@@ -393,15 +446,8 @@ main {
   align-items: baseline;
 }
 
-.featured-projects-header h2 {
-  font-size: 22px;
-  font-weight: var(--weight-semibold);
-  letter-spacing: var(--tracking-snug);
-}
-
 .featured-projects-header a {
   font-size: 13px;
-  color: var(--text-muted);
   text-decoration: none;
 }
 
@@ -451,7 +497,6 @@ main {
 
 .featured-project-body {
   font-size: 15px;
-  color: var(--text-muted);
 }
 
 .featured-project-pills {
@@ -462,18 +507,11 @@ main {
 .featured-project-pill {
   font-size: var(--text-xs);
   padding: 5px 11px;
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-full);
 }
 
 .featured-project-link {
   align-self: flex-start;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
   color: var(--text);
-  text-decoration: none;
 }
 
 img.featured-project-app,
@@ -491,4 +529,260 @@ video.featured-project-app {
     flex-shrink: 0;
     align-self: center;
   }
+}
+
+/* ==== Skills ==== */
+
+.skills {
+  padding-top: var(--space-18);
+  gap: var(--space-7);
+}
+
+/* Stacked with top dividers on mobile; three columns with left dividers from 768px. */
+.skills .cards {
+  gap: var(--space-6);
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 0;
+  }
+}
+
+.skills .card {
+  gap: var(--space-3);
+  @media (min-width: 768px) {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--space-8);
+  }
+}
+
+.skills .card + .card {
+  padding-top: var(--space-6);
+  border-top: var(--border-width) solid var(--border);
+  @media (min-width: 768px) {
+    padding-top: 0;
+    border-top: none;
+    border-left: var(--border-width) solid var(--border);
+  }
+}
+
+@media (min-width: 768px) {
+  .skills .card:first-child {
+    padding-left: 0;
+  }
+
+  .skills .card:last-child {
+    padding-right: 0;
+  }
+}
+
+.skills .card-title {
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  margin-top: var(--space-2);
+}
+
+.skills .card-body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+/* ==== Experience ==== */
+
+.experience {
+  padding-top: var(--space-20);
+  gap: var(--space-7);
+}
+
+.experience-list {
+  gap: var(--space-9);
+  padding-left: var(--space-8);
+}
+
+/* Dates stack under the text on mobile and sit to the right from 768px. */
+.experience-item {
+  position: relative;
+  gap: var(--space-2);
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-6);
+    align-items: baseline;
+  }
+}
+
+.experience-item::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: -32px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--text-subtle);
+  background-color: var(--page-bg);
+  z-index: 1;
+}
+
+.experience-item::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: -28px;
+  bottom: calc(-1 * var(--space-9));
+  width: 1px;
+  background: var(--border);
+}
+
+.experience-item:last-child::after {
+  display: none;
+}
+
+.experience-info {
+  gap: var(--space-1);
+}
+
+.experience-company {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.experience-role {
+  font-size: var(--text-sm);
+}
+
+.experience-desc {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+}
+
+.experience-dates {
+  white-space: nowrap;
+}
+
+/* ==== Footer ==== */
+
+footer {
+  margin-top: var(--space-24);
+}
+
+/* The border sits inside the container's side padding, so it lines up with the content. */
+.footer-inner {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-7);
+  border-top: var(--border-width) solid var(--border);
+  font-size: 13px;
+}
+
+.footer-name {
+  font-weight: var(--weight-semibold);
+}
+
+.footer-links {
+  align-items: center;
+  gap: var(--space-7);
+}
+
+.footer-links a {
+  text-decoration: none;
+}
+
+/* Email link plus a button that copies the address. */
+.footer-email {
+  align-items: center;
+  gap: 2px;
+}
+
+.copy-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: var(--button-pressed-bg);
+  color: var(--text);
+}
+
+/* The check replaces the copy icon only after a successful copy. */
+.copy-button .check-icon,
+.copy-button.is-copied .copy-icon {
+  display: none;
+}
+
+.copy-button.is-copied .check-icon {
+  display: block;
+  color: var(--accent);
+}
+
+/* Draw the check in. pathLength="1" on the path makes the dash values fractions of its length. */
+.check-icon path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .copy-button.is-copied .check-icon path {
+    animation: draw-check 250ms ease-out;
+  }
+}
+
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* Label above the button: shows on hover, keyboard focus, and after a copy. */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 150ms,
+    transform 150ms;
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* Arrow pointing down at the button. */
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--tooltip-bg);
+}
+
+.copy-button:hover .tooltip,
+.copy-button:focus-visible .tooltip,
+.copy-button.is-copied .tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
