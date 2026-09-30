@@ -20,6 +20,9 @@
   --blue-700: #1d4ed8;
   --blue-900: #1e3a8a;
 
+  --green-400: #4ade80;
+  --green-700: #15803d;
+
   /* Spacing: 4px scale, --space-N = N × 4px */
   --space-1: 4px;
   --space-1-5: 6px;
@@ -91,6 +94,8 @@
   --accent: var(--blue-700);
   --accent-border: var(--blue-200);
 
+  --available: var(--green-700);
+
   color-scheme: light;
 }
 
@@ -113,6 +118,8 @@
     --accent: var(--blue-400);
     --accent-border: var(--blue-900);
 
+    --available: var(--green-400);
+
     color-scheme: dark;
   }
 }
@@ -133,6 +140,8 @@
 
   --accent: var(--blue-400);
   --accent-border: var(--blue-900);
+
+  --available: var(--green-400);
 
   color-scheme: dark;
 }
@@ -674,6 +683,177 @@ video.featured-project-app {
 
 .experience-dates {
   white-space: nowrap;
+}
+
+/* ==== About ==== */
+
+.about {
+  padding-top: var(--space-18);
+  gap: var(--space-7);
+}
+
+/* Text, then the photo underneath; side by side from 980px (like the hero), the photo matching the text's height. */
+.about-grid {
+  display: grid;
+  gap: var(--space-8);
+  @media (min-width: 980px) {
+    grid-template-columns: 1fr min(33%, 360px);
+    gap: 64px;
+  }
+}
+
+.about-text {
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.about-lead {
+  max-width: 26ch;
+  font-size: clamp(24px, 3.2vw, 32px);
+  line-height: 1.25;
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* The second half starts its own line, in grey. */
+.about-lead span {
+  display: block;
+  color: var(--text-subtle);
+}
+
+.about-body {
+  line-height: var(--leading-relaxed);
+}
+
+/* "Available" line: a green dot with a soft ring. */
+.about-status {
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.about-status-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--available);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--available) 20%, transparent);
+}
+
+.about-outside {
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: var(--border-width) solid var(--border);
+}
+
+.about-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.about-facts {
+  gap: 14px;
+}
+
+.about-fact {
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.about-fact svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--text);
+}
+
+.about-fact strong {
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+.about-interests {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.about-interests li {
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: 6px 12px;
+  font-size: 13px;
+  background-color: var(--card-surface);
+}
+
+.about-interests svg {
+  color: var(--text-subtle);
+}
+
+.about-photo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.about-photo picture {
+  display: contents;
+}
+
+/* Stacked: a landscape crop (head to chest), capped so it never gets huge.
+   From 980px it's taken out of the flow, so the text sets the row's height and the photo fills it. */
+.about-photo {
+  max-width: 480px;
+  @media (min-width: 980px) {
+    max-width: none;
+    min-height: 420px;
+  }
+}
+
+.about-photo img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center top;
+  @media (min-width: 980px) {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+}
+
+/* Caption over a dark fade. It sits on the photo, so it stays white in both themes. */
+.about-photo figcaption {
+  position: absolute;
+  inset: auto 0 0 0;
+  gap: 2px;
+  padding: 56px var(--space-5) 18px;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.85), transparent);
+  color: #ffffff;
+}
+
+.about-photo-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.about-photo-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-snug);
 }
 
 /* ==== Footer ==== */
