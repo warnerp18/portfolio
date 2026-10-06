@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      {
+        const savedTheme = localStorage.getItem("theme");
+
+        if (savedTheme) {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      }
+    </script>
+    <title>RepoPulse case study — Phil Warner</title>
+    <meta
+      name="description"
+      content="How I built RepoPulse, a GitHub analytics dashboard: one API route fanning out to GitHub, caching on serverless, and numbers that say what they count." />
+    <meta name="author" content="Phil Warner" />
+    <link rel="canonical" href="https://philwarner.dev/projects/repopulse/" />
+
+    <!-- Icons -->
+    <link
+      rel="icon"
+      href="/assets/favicon-32.png"
+      type="image/png"
+      sizes="32x32" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+
+    <!-- Light/dark support -->
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)" />
+    <meta
+      name="theme-color"
+      content="#0a0a0a"
+      media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Phil Warner" />
+    <meta property="og:title" content="RepoPulse case study — Phil Warner" />
+    <meta
+      property="og:description"
+      content="A GitHub analytics dashboard: paste a public repo, get commit activity, contributors, languages and churn on one screen." />
+    <meta
+      property="og:url"
+      content="https://philwarner.dev/projects/repopulse/" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:image"
+      content="https://philwarner.dev/assets/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Phil Warner, Software Engineer: I build thoughtful interfaces and the systems behind them." />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RepoPulse case study — Phil Warner" />
+    <meta
+      name="twitter:description"
+      content="A GitHub analytics dashboard: paste a public repo, get commit activity, contributors, languages and churn on one screen." />
+    <meta
+      name="twitter:image"
+      content="https://philwarner.dev/assets/og-image.jpg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
+
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/case-study.css" />
+    <script src="/main.js" defer></script>
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  </head>
+  <body>
+    <header class="flex-row container">
+      <a href="/" class="name">Phil Warner</a>
+
+      <nav aria-label="Main">
+        <ul class="flex-row nav-list">
+          <li><a href="/#projects" class="nav-links">Projects</a></li>
+          <li><a href="/#experience" class="nav-links">Experience</a></li>
+          <li><a href="/#about" class="nav-links">About</a></li>
+          <li>
+            <a
+              href="https://github.com/warnerp18"
+              aria-label="GitHub"
+              class="nav-links">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path
+                  d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+                <path d="M9 18c-4.51 2-5-2-7-2"></path>
+              </svg>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div role="group" aria-label="Color theme" class="theme-pill">
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use system theme"
+          aria-pressed="true"
+          data-theme-choice="system">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <rect x="3" y="4" width="18" height="12" rx="1.5"></rect>
+            <path d="M8 20h8M12 16v4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use light theme"
+          aria-pressed="false"
+          data-theme-choice="light">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use dark theme"
+          aria-pressed="false"
+          data-theme-choice="dark">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="container case-intro flex-column">
+        <a href="/#projects" class="case-back arrow-link flex-row text-muted">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M19 12H5M11 6l-6 6 6 6"></path>
+          </svg>
+          All projects
+        </a>
+
+        <div class="case-title-row flex-row">
+          <img src="/assets/repopulse-icon.svg" alt="" />
+          <h1>RepoPulse</h1>
+          <span class="case-status pill flex-row">Live</span>
+        </div>
+
+        <p class="case-lead text-muted">
+          Paste any public GitHub repository and get five views of it on one
+          screen: commit activity, top contributors, languages, how much changed
+          recently, and which files took that change. One request fans out to
+          GitHub and comes back as a single dashboard.
+        </p>
+
+        <div class="case-links flex-row">
+          <a
+            href="https://www.repopulse.tech"
+            target="_blank"
+            class="case-link-primary arrow-link flex-row pill">
+            Try it live
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M7 17L17 7M8 7h9v9"></path>
+            </svg>
+          </a>
+          <a
+            href="https://github.com/warnerp18/Repo-Pulse"
+            target="_blank"
+            class="arrow-link flex-row pill">
+            View the code
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M7 17L17 7M8 7h9v9"></path>
+            </svg>
+          </a>
+        </div>
+
+        <dl class="case-facts">
+          <div>
+            <dt>Role</dt>
+            <dd>Solo: code, tests, deployment. Visual design and CSS by AI</dd>
+          </div>
+          <div>
+            <dt>Timeline</dt>
+            <dd>One week, September 2026</dd>
+          </div>
+          <div class="case-facts-wide">
+            <dt>Stack</dt>
+            <dd>
+              Next.js 16 (App Router), React 19, TypeScript, CSS Modules, GitHub
+              REST API, Node's built-in test runner, Vercel
+            </dd>
+          </div>
+          <div>
+            <dt>Tests</dt>
+            <dd>49 passing</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="container">
+        <div class="case-media case-media-wide">
+          <video
+            src="/assets/repopulse-dashboard.mp4"
+            poster="/assets/repopulse-dashboard-poster.jpg"
+            width="1600"
+            height="1324"
+            muted
+            loop
+            playsinline
+            aria-label="Pasting facebook/react into RepoPulse: a loading skeleton, then the full dashboard with commit activity, contributors, languages and churn."></video>
+        </div>
+      </div>
+
+      <div class="container case-layout">
+        <nav class="case-toc flex-column" aria-label="On this page">
+          <p class="case-toc-title">On this page</p>
+          <a href="#why">Why I built it</a>
+          <a href="#how">How it's built</a>
+          <a href="#numbers">Honest numbers</a>
+          <a href="#problems">Problems I solved</a>
+          <a href="#tradeoffs">Trade-offs</a>
+          <a href="#design">Design and accessibility</a>
+          <a href="#testing">Testing and workflow</a>
+          <a href="#ai">How I used AI</a>
+          <a href="#learned">What I learned</a>
+          <a href="#next">What's next</a>
+        </nav>
+
+        <article class="case-body flex-column">
+          <section id="why" class="case-section flex-column">
+            <h2 class="section-title">Why I built it</h2>
+            <p class="text-muted">
+              I wanted a project built around someone else's API: real data,
+              real rate limits, and responses I don't control. GitHub fit. It
+              has no paid tier blocking access, years of public history to work
+              with, and no sign-in needed to read public repos.
+            </p>
+            <ul class="case-grid case-grid-2">
+              <li class="case-card flex-column">
+                <h3>One request from the browser</h3>
+                <p class="text-muted">
+                  My own API talks to GitHub and returns only what the screen
+                  needs.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Stay inside a shared budget</h3>
+                <p class="text-muted">
+                  Every visitor shares one token and 5,000 GitHub requests an
+                  hour.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>One failure doesn't sink the page</h3>
+                <p class="text-muted">
+                  If one section fails, the other four still render.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Every number means what it says</h3>
+                <p class="text-muted">
+                  A dashboard whose job is reporting numbers can't show one that
+                  only looks right.
+                </p>
+              </li>
+            </ul>
+            <p class="case-note">
+              I picked GitHub after ruling out Spotify, Last.fm and Strava. I
+              checked each one live, not in the docs: two now need a paid
+              subscription just to register an app, and one has no history until
+              you start using it.
+            </p>
+          </section>
+
+          <section id="how" class="case-section flex-column">
+            <h2 class="section-title">How it's built</h2>
+            <p class="text-muted">
+              The browser asks my API about one repo. The API asks GitHub for
+              five sections in parallel, trims them down and sends back one
+              response.
+            </p>
+
+            <figure class="case-diagram">
+              <div class="case-diagram-box flex-column">
+                <h3>Browser</h3>
+                <p>
+                  One request for
+                  <code>?repo=owner/name</code>. Each panel renders its own
+                  section.
+                </p>
+              </div>
+              <svg
+                class="case-diagram-arrow"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M4 9h16M14 4l5 5M20 15H4M10 20l-5-5"></path>
+              </svg>
+              <div class="case-diagram-box case-diagram-box-accent flex-column">
+                <h3>/api/repo-insights</h3>
+                <p>
+                  Checks the repo name, fans out, caches, and returns
+                  <code>{ data, error }</code> for each section.
+                </p>
+              </div>
+              <svg
+                class="case-diagram-arrow"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M4 9h16M14 4l5 5M20 15H4M10 20l-5-5"></path>
+              </svg>
+              <div class="case-diagram-box flex-column">
+                <h3>GitHub REST API</h3>
+                <p>
+                  Repo details, languages, contributors, commit activity and
+                  churn
+                </p>
+              </div>
+            </figure>
+
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>A backend for the frontend.</strong>
+                GitHub's raw responses are huge: full commit objects, signatures
+                and diff text. The API keeps the few fields the screen uses and
+                drops the rest before anything reaches the browser.
+              </li>
+              <li>
+                <strong>Each section succeeds or fails on its own.</strong>
+                Every section returns <code>{ data, error }</code>, so the route
+                never fails just because one GitHub call did. The dashboard
+                decides what each failure means.
+              </li>
+              <li>
+                <strong>The repo name is a security check.</strong>
+                Every call carries my GitHub token, so
+                <code>?repo=../user</code> would reach an authenticated endpoint
+                outside <code>/repos/</code>. Anything that isn't exactly
+                <code>owner/name</code> is rejected before it goes into a URL.
+              </li>
+              <li>
+                <strong>REST, on purpose.</strong>
+                My day job already shows GraphQL, so this project shows a
+                well-designed REST API instead.
+              </li>
+              <li>
+                <strong>Cached per call.</strong>
+                Each GitHub call has its own cache time, from a minute for "last
+                pushed" to a day for data that can't change until midnight UTC.
+              </li>
+            </ul>
+          </section>
+
+          <section id="numbers" class="case-section flex-column">
+            <h2 class="section-title">Honest numbers</h2>
+            <p class="text-muted">
+              Analytics tools tend to show a number without saying what it
+              counts. Four of these needed a decision about what they mean, and
+              the live site explains each one.
+            </p>
+            <ul class="case-grid case-grid-2">
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">~25%</span>
+                <span class="case-stat-label">
+                  more commits than <code>git log</code> shows on React. The
+                  headline uses the same source as the chart under it, so the
+                  two always agree.
+                </span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">300+</span>
+                <span class="case-stat-label">
+                  is the most "Files changed" can show. GitHub stops at 300 and
+                  gives no total, so the tile says so instead of guessing.
+                </span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">0</span>
+                <span class="case-stat-label">
+                  lockfiles in the churn ranking. On React,
+                  <code>yarn.lock</code> outranked every hand-written file. They
+                  still count as files changed, because they did change.
+                </span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">90</span>
+                <span class="case-stat-label">
+                  whole UTC days, today included. Not 90 &times; 24 hours from
+                  whenever the page loaded.
+                </span>
+              </li>
+            </ul>
+          </section>
+
+          <section id="problems" class="case-section flex-column">
+            <h2 class="section-title">Problems I solved</h2>
+
+            <div class="case-problem flex-column">
+              <h3>Churn in one call, not a hundred</h3>
+              <p class="text-muted">
+                "Which files changed most in 90 days" usually means fetching
+                every commit, then every commit's files: over 100 requests for
+                an active repo, against a budget every visitor shares. Instead I
+                find the last commit before the 90-day mark and make one
+                <code>compare</code>
+                call from there to <code>HEAD</code>, which returns totals per
+                file for the whole range.
+              </p>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>Caching on serverless</h3>
+              <p class="text-muted">
+                Next.js 16's newer <code>use cache</code> keeps entries in
+                memory, and the docs say that on serverless they usually don't
+                survive between requests. Two visitors a minute apart would both
+                reach GitHub. I used the <code>fetch</code> cache instead, which
+                only keeps successful responses, so a failure or a "still
+                computing" reply is never stuck in the cache. A repeat request
+                for a small repo made zero GitHub calls.
+              </p>
+              <p class="text-muted">
+                Testing it turned up a limit: Next.js won't cache anything over
+                2 MB, and React's 90-day comparison is 2.77 MB. I kept the cache
+                on that call anyway. It does nothing on the largest repos and
+                works for everything else.
+              </p>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>The same error means different things</h3>
+              <p class="text-muted">
+                A <code>403</code> on contributors means GitHub won't list a
+                huge history like Linux's. A <code>403</code> anywhere else
+                means the shared token hit the rate limit. One function maps
+                each section and status code to <em>ok</em>, <em>pending</em>,
+                <em>empty</em>, <em>unavailable</em> or <em>failed</em>, and
+                tests fail if anyone simplifies it to a single lookup table.
+                Failures get a warning box. Empty and unavailable get quiet
+                text, so a repo GitHub won't count doesn't look broken.
+              </p>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>A contributor count that was really a page size</h3>
+              <p class="text-muted">
+                The tile showed 30 for every popular repo. That's GitHub's
+                default page size; React has 411. A second request asks for one
+                contributor per page, runs in parallel with the first, and reads
+                the last page number from the <code>Link</code> header. With one
+                per page, that number is the total.
+              </p>
+            </div>
+
+            <ul class="case-grid case-grid-3">
+              <li class="case-card flex-column">
+                <h3>Stats still computing</h3>
+                <p class="text-muted">
+                  GitHub answers <code>202</code> while it builds commit stats.
+                  The server retries briefly, then the panel stays loading and
+                  asks again, up to three times.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Paths that keep the filename</h3>
+                <p class="text-muted">
+                  Long paths shorten the folders and keep the filename whole, in
+                  CSS, so screen readers and copy-paste get the full path.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>"3 days ago", not "1 month ago"</h3>
+                <p class="text-muted">
+                  Relative times come from elapsed time, never from comparing
+                  month numbers, so 29 September to 2 October is 3 days.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section id="tradeoffs" class="case-section flex-column">
+            <h2 class="section-title">Trade-offs</h2>
+            <p class="text-muted">
+              Most of these had a reasonable alternative, so the reasons matter
+              more than the choices.
+            </p>
+
+            <div class="case-table-wrap">
+              <table class="case-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Decision</th>
+                    <th scope="col">What I chose</th>
+                    <th scope="col">Why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Missing repos</th>
+                    <td>
+                      Ask for all five sections at once, check the repo exists
+                      after
+                    </td>
+                    <td>
+                      Checking first saves five calls on a typo but slows down
+                      every load that works. My first instinct was to check
+                      first; I changed my mind
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Abuse</th>
+                    <td>Caching first, rate limiting later</td>
+                    <td>
+                      Caching handles someone impatient; rate limiting handles
+                      someone hostile. The first is far more common
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Charts</th>
+                    <td>No charting library: 52 divs sized by percentage</td>
+                    <td>
+                      The only math was one division. Plain HTML made
+                      accessibility simpler too
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Language %</th>
+                    <td>Divide by all bytes, with a gray remainder</td>
+                    <td>
+                      Dividing by the top five fills the bar neatly, but
+                      overstates every language
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Churn ranking</th>
+                    <td>Server ranks and keeps 20; the page shows 5</td>
+                    <td>
+                      The server decides what the data is; the page decides how
+                      much to show
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Data fetching</th>
+                    <td>
+                      Client fetch and an API route now; Server Components with
+                      streaming later
+                    </td>
+                    <td>
+                      Caching made the current version fast, and rewriting the
+                      core while shipping is how projects don't ship
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Error tracking</th>
+                    <td>
+                      <code>console.error</code>
+                      in the error boundary, no paid service
+                    </td>
+                    <td>
+                      Right for a portfolio site. I'd add one when there are
+                      real users
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="design" class="case-section flex-column">
+            <h2 class="section-title">Design and accessibility</h2>
+            <p class="text-muted">
+              The visual design isn't mine: I asked AI to design the site in the
+              style of GitHub's Universe 2018 conference site. That's where the
+              dark blue-gray background, the drifting stars, the slow pulse
+              while loading and the single-line input with a sliding arrow come
+              from. The gradient runs violet to pink to orange as a thin border,
+              not a fill, so the numbers stay the brightest thing on screen.
+            </p>
+            <p class="text-muted">
+              Charts are usually where dashboards stop being accessible, so I
+              built the commit chart for it from the start.
+            </p>
+            <ul class="case-grid case-grid-2">
+              <li class="case-card flex-column">
+                <h3>Every bar names itself</h3>
+                <p class="text-muted">
+                  Each bar has its week and commit count as an accessible name,
+                  so the hover tooltip is a convenience, not the only way in.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>The chart is also a table</h3>
+                <p class="text-muted">
+                  One "View as table" panel instead of 52 tab stops, and you can
+                  copy from it.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Color checked, not eyeballed</h3>
+                <p class="text-muted">
+                  Color pairs tested under simulated color blindness, and every
+                  data mark measured at 3:1 contrast or better.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Motion is optional</h3>
+                <p class="text-muted">
+                  The stars, the loading pulse and the skeleton shimmer stop
+                  when Reduce motion is on.
+                </p>
+              </li>
+            </ul>
+            <p class="case-note">
+              That's markup and measurement, not a conformance claim. Nothing
+              has been through a real screen reader yet, and the pages around
+              the chart haven't been audited.
+            </p>
+          </section>
+
+          <section id="testing" class="case-section flex-column">
+            <h2 class="section-title">Testing and workflow</h2>
+            <ul class="case-grid case-grid-3">
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">49</span>
+                <span class="case-stat-label">tests passing</span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">0</span>
+                <span class="case-stat-label">
+                  test dependencies: Node's built-in runner runs the TypeScript
+                  directly
+                </span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">7</span>
+                <span class="case-stat-label">
+                  GitHub calls per page load, and zero once cached, on most
+                  repos
+                </span>
+              </li>
+            </ul>
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>Tests go where the risk is.</strong>
+                The bugs here are arithmetic: the 90-day window, UTC versus
+                local time, seconds versus milliseconds. Those are plain
+                functions, so they need no browser and no testing library.
+              </li>
+              <li>
+                <strong>A frozen clock.</strong>
+                Date tests pin the time to a fixed moment, so they pass on any
+                day, in any time zone.
+              </li>
+              <li>
+                <strong>Tests caught a refactor bug.</strong>
+                Rewriting "time ago" as a table briefly showed "12 months ago"
+                for days 360 to 364. The tests failed the moment it landed.
+              </li>
+              <li>
+                <strong>Caching checked in a production build.</strong>
+                <code>next dev</code> and a hard refresh both skip the cache, so
+                I verified it with <code>next build && next start</code>.
+              </li>
+            </ul>
+          </section>
+
+          <section id="ai" class="case-section flex-column">
+            <h2 class="section-title">How I used AI</h2>
+            <p class="text-muted">
+              For the app itself, I used AI as a pairing partner that teaches,
+              not one that writes the code. I drove and made the calls. It asked
+              questions, reviewed my work, pointed me to the Next.js 16 docs,
+              and kept a running list of every trade-off and why, so I could
+              explain them later.
+            </p>
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>The visual design and CSS are AI's.</strong> I asked it
+                to design the site in the style of GitHub's Universe 2018 site,
+                and it wrote almost all of the CSS. I don't take credit for the
+                look.
+              </li>
+              <li>
+                <strong>It argued, I decided.</strong>
+                It talked me out of checking the repo exists before fetching. I
+                kept my own approach where it held up, and it rejected one of
+                mine for the contributor count with reasons I agreed with.
+              </li>
+              <li>
+                <strong>I asked the questions that shaped the design.</strong>
+                For a repo with no languages, I asked how the panel would know
+                the difference between "GitHub found none" and "the request
+                failed". It's easy to miss, because an empty result is a success
+                with no error code. So each panel checks three things in order:
+                did it fail, did it come back empty, and only then is there data
+                to show.
+              </li>
+            </ul>
+            <div class="case-problem flex-column">
+              <h3>What it got wrong</h3>
+              <p class="text-muted">
+                Checking whether the cache worked, it trusted four indirect
+                measurements, and each one was wrong. One read a rate-limit
+                counter that never moves for these calls, so it would have
+                reported success even if the cache did nothing. Five lines of
+                timing logs settled it in one run: a cache hit takes 0&ndash;1
+                ms, a real GitHub call 100 ms or more. Measure the thing itself.
+              </p>
+            </div>
+          </section>
+
+          <section id="learned" class="case-section flex-column">
+            <h2 class="section-title">What I learned</h2>
+            <ol class="case-lessons">
+              <li class="flex-row">
+                <span class="mono-meta">01</span>
+                <div class="flex-column">
+                  <h3>A wrong number that looks right is the worst kind.</h3>
+                  <p class="text-muted">
+                    "30 contributors" looked fine. A blank tile would at least
+                    have been obviously wrong.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">02</span>
+                <div class="flex-column">
+                  <h3>Numbers side by side must agree, or say why not.</h3>
+                  <p class="text-muted">
+                    A headline that contradicts the chart under it loses the
+                    reader's trust in both.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">03</span>
+                <div class="flex-column">
+                  <h3>Where it runs decides how to cache.</h3>
+                  <p class="text-muted">
+                    The newer API was the wrong choice for serverless. Read the
+                    docs for the platform, not the changelog.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">04</span>
+                <div class="flex-column">
+                  <h3>Measure it, don't infer it.</h3>
+                  <p class="text-muted">
+                    Before trusting a measurement that says nothing happened,
+                    check it can show you when something did.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">05</span>
+                <div class="flex-column">
+                  <h3>Make the common case fast.</h3>
+                  <p class="text-muted">
+                    Guarding against a rare typo by slowing every good request
+                    is the wrong way round.
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </section>
+
+          <section id="next" class="case-section flex-column">
+            <h2 class="section-title">What's next</h2>
+            <ul class="case-next-list flex-column text-muted">
+              <li>
+                Move the dashboard to Server Components with streaming, so
+                panels appear as they're ready, and write up what changed
+              </li>
+              <li>
+                Validate GitHub's responses at runtime with Zod, which also
+                gives the API and the page one shared type
+              </li>
+              <li>Tests for the repo-name check and the API route</li>
+              <li>A full accessibility pass, including a real screen reader</li>
+            </ul>
+          </section>
+        </article>
+      </div>
+
+      <div class="container">
+        <a href="/projects/notwordle/" class="case-next-project flex-row">
+          <img src="/assets/notwordle-icon.svg" alt="" />
+          <span class="flex-column">
+            <span class="mono-meta">Next project</span>
+            <span class="case-next-project-name">NotWordle</span>
+          </span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"></path>
+          </svg>
+        </a>
+      </div>
+    </main>
+    <footer class="container">
+      <div class="footer-inner flex-row">
+        <span class="footer-name">Phil Warner</span>
+        <nav aria-label="Footer">
+          <ul class="footer-links flex-row">
+            <li>
+              <a
+                class="text-muted"
+                href="https://github.com/warnerp18"
+                target="_blank">
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a
+                class="text-muted"
+                href="https://www.linkedin.com/in/phil-warner"
+                target="_blank">
+                LinkedIn
+              </a>
+            </li>
+            <li class="footer-email flex-row">
+              <a class="text-muted" href="mailto:contact@philwarner.dev">
+                Email
+              </a>
+              <button
+                type="button"
+                class="copy-button"
+                data-email="contact@philwarner.dev"
+                aria-label="Copy email address">
+                <svg
+                  class="copy-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true">
+                  <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <svg
+                  class="check-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true">
+                  <path d="M4 12l5 5L20 6" pathLength="1"></path>
+                </svg>
+                <span class="tooltip" aria-hidden="true">Copy email</span>
+              </button>
+              <span class="sr-only copy-status" aria-live="polite"></span>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -137,22 +137,42 @@
 
 /* ==== Media ==== */
 
-/* Phone recording centered on a panel the same color as the app's background, in both themes. */
+/* Demo video under the intro. Add a modifier for the recording's shape. */
 .case-media {
+  margin-top: var(--space-12);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.case-media video {
+  display: block;
+  height: auto;
+}
+
+/* Phone recording: centered on a panel the same color as the app's background, in both themes. */
+.case-media-phone {
   display: flex;
   justify-content: center;
-  margin-top: var(--space-12);
   padding: var(--space-8) var(--space-4);
-  border-radius: var(--radius-lg);
   background: #121212;
   @media (min-width: 768px) {
     padding-block: var(--space-12);
   }
 }
 
-.case-media video {
+.case-media-phone video {
   width: min(100%, 340px);
-  height: auto;
+}
+
+/* Desktop recording: centered and capped below the full width, with a border so its dark edges show on the dark theme. */
+.case-media-wide {
+  max-width: 900px;
+  margin-inline: auto;
+  border: var(--border-width) solid var(--border);
+}
+
+.case-media-wide video {
+  width: 100%;
 }
 
 /* ==== Layout: contents nav and article ==== */
