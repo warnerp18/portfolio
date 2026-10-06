@@ -1,0 +1,630 @@
+/* Styles for project case study pages. Loaded after styles.css, so it uses its tokens and utilities. */
+
+/* ==== Intro ==== */
+
+.case-intro {
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+  @media (min-width: 768px) {
+    padding-top: var(--space-12);
+  }
+}
+
+.case-back {
+  align-self: flex-start;
+  font-weight: var(--weight-regular);
+}
+
+.case-title-row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.case-title-row img {
+  width: 48px;
+  height: 48px;
+  @media (min-width: 768px) {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+.case-title-row h1 {
+  font-size: 40px;
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  @media (min-width: 768px) {
+    font-size: var(--text-display);
+  }
+}
+
+/* "In progress" chip with a green dot. */
+.case-status {
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.case-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--available);
+}
+
+.case-lead {
+  max-width: 760px;
+  font-size: 18px;
+  line-height: var(--leading-normal);
+  @media (min-width: 768px) {
+    font-size: var(--text-lg);
+  }
+}
+
+.case-links {
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.case-links a {
+  padding: var(--space-3) 18px;
+  color: var(--text);
+}
+
+.case-links .case-link-primary {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+/* Role, timeline, stack, tests. Two columns on mobile; one row with dividers from 768px. */
+.case-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-6);
+  margin: var(--space-3) 0 0;
+  padding-block: var(--space-5);
+  border-block: var(--border-width) solid var(--border);
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr 2fr 1fr;
+    gap: 0;
+  }
+}
+
+.case-facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  @media (min-width: 768px) {
+    padding-inline: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .case-facts > div:first-child {
+    padding-left: 0;
+  }
+
+  .case-facts > div:last-child {
+    padding-right: 0;
+  }
+
+  .case-facts > div + div {
+    border-left: var(--border-width) solid var(--border);
+  }
+}
+
+.case-facts-wide {
+  grid-column: 1 / -1;
+  @media (min-width: 768px) {
+    grid-column: auto;
+  }
+}
+
+.case-facts dt {
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.case-facts dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* ==== Media ==== */
+
+/* Phone recording centered on a panel the same color as the app's background, in both themes. */
+.case-media {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: #121212;
+  @media (min-width: 768px) {
+    padding-block: var(--space-12);
+  }
+}
+
+.case-media video {
+  width: min(100%, 340px);
+  height: auto;
+}
+
+/* ==== Layout: contents nav and article ==== */
+
+.case-layout {
+  padding-top: var(--space-18);
+  @media (min-width: 1024px) {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+}
+
+/* Only shown beside the article on wide screens. */
+.case-toc {
+  display: none;
+  @media (min-width: 1024px) {
+    display: flex;
+    position: sticky;
+    top: var(--space-8);
+    flex-shrink: 0;
+    width: 200px;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+  }
+}
+
+.case-toc-title {
+  margin-bottom: var(--space-1);
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.case-toc a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.case-body {
+  min-width: 0;
+  max-width: 720px;
+  gap: var(--space-18);
+}
+
+.case-section {
+  gap: var(--space-5);
+  /* Keep headings clear of the top edge after a contents jump. */
+  scroll-margin-top: var(--space-8);
+}
+
+.case-section p,
+.case-section li {
+  line-height: 1.7;
+}
+
+.case-section code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 1px 5px;
+  border: var(--border-width) solid var(--border);
+  border-radius: 4px;
+  background: var(--card-surface);
+  color: var(--text);
+}
+
+.case-note {
+  font-size: var(--text-sm);
+  color: var(--text-subtle);
+}
+
+/* ==== Cards and grids ==== */
+
+.case-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.case-grid-2 {
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.case-grid-3 {
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.case-card {
+  gap: var(--space-1-5);
+  padding: 18px var(--space-5);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-surface);
+}
+
+.case-card h3 {
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+}
+
+.case-section .case-card p {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+/* Bulleted points with a bold lead-in. */
+.case-points {
+  gap: var(--space-4);
+  font-size: 15px;
+}
+
+.case-points strong {
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+/* ==== Architecture diagram ==== */
+
+/* Stacked on mobile with the arrows turned to point down; one row from 768px. */
+.case-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-surface);
+  @media (min-width: 768px) {
+    flex-direction: row;
+    padding: var(--space-6);
+  }
+}
+
+.case-diagram-box {
+  flex: 1;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.case-diagram-box-accent {
+  flex-grow: 1.3;
+  border-color: var(--accent-border);
+}
+
+.case-diagram-box h3 {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.case-section .case-diagram-box p {
+  font-size: 13px;
+  line-height: var(--leading-normal);
+  color: var(--text-subtle);
+}
+
+.case-diagram-arrow {
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  transform: rotate(90deg);
+  @media (min-width: 768px) {
+    transform: none;
+  }
+}
+
+/* ==== Problems ==== */
+
+.case-problem {
+  gap: var(--space-3);
+}
+
+.case-problem h3,
+.case-lessons h3 {
+  font-size: 17px;
+  font-weight: var(--weight-semibold);
+}
+
+/* Answer and guess tiles. Always dark, like the game board. */
+.case-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+  margin: var(--space-1) 0 0;
+  padding: 18px var(--space-5);
+  border-radius: var(--radius-md);
+  background: #0f172a;
+}
+
+.case-tiles-rows {
+  gap: var(--space-2);
+}
+
+.case-tiles-row {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.case-tiles-label {
+  width: 52px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #475569;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.tile-correct {
+  border-color: #15803d;
+  background: #15803d;
+}
+
+.tile-present {
+  border-color: #b45309;
+  background: #b45309;
+}
+
+.tile-absent {
+  border-color: #475569;
+  background: #475569;
+}
+
+.case-tiles figcaption {
+  flex: 1 1 200px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+/* ==== Accounts ==== */
+
+.case-heading-row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.case-progress {
+  gap: 14px;
+}
+
+.case-progress-header {
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.case-progress progress {
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.case-progress progress::-webkit-progress-bar {
+  background: var(--border);
+}
+
+.case-progress progress::-webkit-progress-value {
+  background: var(--available);
+}
+
+.case-progress progress::-moz-progress-bar {
+  background: var(--available);
+}
+
+.case-checklist {
+  display: grid;
+  gap: 10px var(--space-6);
+  font-size: var(--text-sm);
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.case-section .case-checklist li {
+  display: flex;
+  gap: 10px;
+  line-height: 1.45;
+}
+
+/* Open circle for to-do items, a check for done ones. */
+.case-checklist li::before {
+  content: "";
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin: 3px 2px 0;
+  border: 1.5px solid var(--text-subtle);
+  border-radius: var(--radius-full);
+}
+
+.case-checklist li.is-done {
+  color: var(--text-muted);
+}
+
+.case-checklist li.is-done::before {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  border: none;
+  border-radius: 0;
+  background: var(--available);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* Scrolls sideways on narrow screens instead of squashing the columns. */
+.case-table-wrap {
+  overflow-x: auto;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.case-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-align: left;
+}
+
+.case-table th,
+.case-table td {
+  padding: var(--space-3) var(--space-4);
+  vertical-align: top;
+}
+
+.case-table thead th {
+  font-weight: var(--weight-semibold);
+  background: var(--button-pressed-bg);
+}
+
+.case-table tbody th {
+  width: 130px;
+  font-weight: var(--weight-regular);
+}
+
+.case-table td {
+  color: var(--text-muted);
+}
+
+.case-table tbody tr {
+  border-top: var(--border-width) solid var(--border);
+}
+
+/* ==== Testing ==== */
+
+.case-stat {
+  padding: var(--space-5);
+}
+
+.case-stat-value {
+  font-size: 32px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+}
+
+.case-stat-label {
+  font-size: 13px;
+  line-height: var(--leading-normal);
+  color: var(--text-subtle);
+}
+
+/* ==== Lessons and next steps ==== */
+
+.case-lessons {
+  border-top: var(--border-width) solid var(--border);
+}
+
+.case-lessons li {
+  gap: var(--space-5);
+  padding-block: 18px;
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+.case-lessons .mono-meta {
+  padding-top: 3px;
+}
+
+.case-lessons div {
+  gap: var(--space-1);
+}
+
+.case-next-list {
+  gap: 10px;
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
+/* ==== Next project ==== */
+
+.case-next-project {
+  align-items: center;
+  gap: var(--space-5);
+  margin-top: var(--space-24);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card-surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color var(--duration-fast);
+}
+
+.case-next-project img {
+  width: 48px;
+  height: 48px;
+}
+
+.case-next-project > .flex-column {
+  flex-grow: 1;
+  gap: var(--space-1);
+}
+
+.case-next-project-name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+/* ==== Hover states ==== */
+
+.case-links a,
+.case-toc a,
+.case-back {
+  transition:
+    color var(--duration-fast),
+    border-color var(--duration-fast);
+}
+
+@media (hover: hover) {
+  .case-links a:hover {
+    border-color: var(--text-subtle);
+  }
+
+  .case-links .case-link-primary:hover {
+    border-color: var(--accent);
+  }
+
+  .case-toc a:hover,
+  .case-back:hover {
+    color: var(--text);
+  }
+
+  .case-next-project:hover {
+    border-color: var(--text-subtle);
+  }
+}
+
+/* The back arrow nudges left, not right like the other arrow links. */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .case-back:hover svg {
+    transform: translateX(-3px);
+  }
+}

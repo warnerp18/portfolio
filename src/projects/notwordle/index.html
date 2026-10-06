@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      {
+        const savedTheme = localStorage.getItem("theme");
+
+        if (savedTheme) {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      }
+    </script>
+    <title>NotWordle case study — Phil Warner</title>
+    <meta
+      name="description"
+      content="How I rebuilt NotWordle as a full-stack game where the server owns the answer: Next.js Server Functions, raw SQL on Postgres, and hand-built accounts." />
+    <meta name="author" content="Phil Warner" />
+    <link rel="canonical" href="https://philwarner.dev/projects/notwordle/" />
+
+    <!-- Icons -->
+    <link
+      rel="icon"
+      href="/assets/favicon-32.png"
+      type="image/png"
+      sizes="32x32" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+
+    <!-- Light/dark support -->
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)" />
+    <meta
+      name="theme-color"
+      content="#0a0a0a"
+      media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Phil Warner" />
+    <meta property="og:title" content="NotWordle case study — Phil Warner" />
+    <meta
+      property="og:description"
+      content="A full-stack Wordle-style game where the server owns the answer, so it can't be found in DevTools." />
+    <meta
+      property="og:url"
+      content="https://philwarner.dev/projects/notwordle/" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:image"
+      content="https://philwarner.dev/assets/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Phil Warner, Software Engineer: I build thoughtful interfaces and the systems behind them." />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NotWordle case study — Phil Warner" />
+    <meta
+      name="twitter:description"
+      content="A full-stack Wordle-style game where the server owns the answer, so it can't be found in DevTools." />
+    <meta
+      name="twitter:image"
+      content="https://philwarner.dev/assets/og-image.jpg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
+
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/case-study.css" />
+    <script src="/main.js" defer></script>
+    <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  </head>
+  <body>
+    <header class="flex-row container">
+      <a href="/" class="name">Phil Warner</a>
+
+      <nav aria-label="Main">
+        <ul class="flex-row nav-list">
+          <li><a href="/#projects" class="nav-links">Projects</a></li>
+          <li><a href="/#experience" class="nav-links">Experience</a></li>
+          <li><a href="/#about" class="nav-links">About</a></li>
+          <li>
+            <a
+              href="https://github.com/warnerp18"
+              aria-label="GitHub"
+              class="nav-links">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path
+                  d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+                <path d="M9 18c-4.51 2-5-2-7-2"></path>
+              </svg>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div role="group" aria-label="Color theme" class="theme-pill">
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use system theme"
+          aria-pressed="true"
+          data-theme-choice="system">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <rect x="3" y="4" width="18" height="12" rx="1.5"></rect>
+            <path d="M8 20h8M12 16v4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use light theme"
+          aria-pressed="false"
+          data-theme-choice="light">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="theme-button"
+          aria-label="Use dark theme"
+          aria-pressed="false"
+          data-theme-choice="dark">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="container case-intro flex-column">
+        <a href="/#projects" class="case-back arrow-link flex-row text-muted">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M19 12H5M11 6l-6 6 6 6"></path>
+          </svg>
+          All projects
+        </a>
+
+        <div class="case-title-row flex-row">
+          <img src="/assets/notwordle-icon.svg" alt="" />
+          <h1>NotWordle</h1>
+          <span class="case-status pill flex-row">In progress</span>
+        </div>
+
+        <p class="case-lead text-muted">
+          A Wordle-style game where the server owns the answer, so it can't be
+          found in DevTools. A simple game, rebuilt with a Postgres database,
+          server-side game logic and hand-built authentication.
+        </p>
+
+        <div class="case-links flex-row">
+          <a
+            href="https://notwordle.app/"
+            target="_blank"
+            class="case-link-primary arrow-link flex-row pill">
+            Play it live
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M7 17L17 7M8 7h9v9"></path>
+            </svg>
+          </a>
+          <a
+            href="https://github.com/warnerp18/notwordle"
+            target="_blank"
+            class="arrow-link flex-row pill">
+            View the code
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M7 17L17 7M8 7h9v9"></path>
+            </svg>
+          </a>
+        </div>
+
+        <dl class="case-facts">
+          <div>
+            <dt>Role</dt>
+            <dd>Solo: design, code, tests, deployment</dd>
+          </div>
+          <div>
+            <dt>Timeline</dt>
+            <dd>Since September 2026, ongoing</dd>
+          </div>
+          <div class="case-facts-wide">
+            <dt>Stack</dt>
+            <dd>
+              Next.js 16 (App Router), React 19, TypeScript, Neon Postgres, Zod,
+              Jest + Testing Library, Vercel
+            </dd>
+          </div>
+          <div>
+            <dt>Tests</dt>
+            <dd>139 passing</dd>
+          </div>
+        </dl>
+      </section>
+
+      <div class="container">
+        <div class="case-media">
+          <video
+            src="/assets/notwordle-demo.mp4"
+            poster="/assets/notwordle-demo-poster.jpg"
+            width="720"
+            height="1380"
+            muted
+            loop
+            playsinline
+            aria-label="A full game on a phone, sped up: STO is rejected for not enough letters, then STONN and EERIE; QWERT is rejected as not in the word list, then TRACE and CRATE narrow it down, and REACT wins."></video>
+        </div>
+      </div>
+
+      <div class="container case-layout">
+        <nav class="case-toc flex-column" aria-label="On this page">
+          <p class="case-toc-title">On this page</p>
+          <a href="#why">Why I rebuilt it</a>
+          <a href="#how">How it's built</a>
+          <a href="#problems">Problems I solved</a>
+          <a href="#accounts">Designing accounts</a>
+          <a href="#testing">Testing and workflow</a>
+          <a href="#ai">How I used AI</a>
+          <a href="#learned">What I learned</a>
+          <a href="#next">What's next</a>
+        </nav>
+
+        <article class="case-body flex-column">
+          <section id="why" class="case-section flex-column">
+            <h2 class="section-title">Why I rebuilt it</h2>
+            <p class="text-muted">
+              I thought Wordle would be an interesting app to rebuild: simple on
+              the surface, with real problems underneath. My first version
+              worked, but the answer lived in the browser: anyone could open
+              DevTools and read it. I wanted to fix that properly and use the
+              project to learn the parts of full-stack work I hadn't done end to
+              end.
+            </p>
+            <ul class="case-grid case-grid-2">
+              <li class="case-card flex-column">
+                <h3>The answer never reaches the browser</h3>
+                <p class="text-muted">Until the game is over.</p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Games are saved in a real database</h3>
+                <p class="text-muted">So a refresh doesn't lose progress.</p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Accounts I build myself</h3>
+                <p class="text-muted">
+                  Not a hosted auth product, so I'd understand sessions, hashing
+                  and cookies.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Raw SQL, no ORM</h3>
+                <p class="text-muted">
+                  So I'd learn what the database is actually doing.
+                </p>
+              </li>
+            </ul>
+            <p class="case-note">
+              The first version (board, keyboard, tile colors, accessibility and
+              tests) took a single day. Everything after that is the rebuild.
+            </p>
+          </section>
+
+          <section id="how" class="case-section flex-column">
+            <h2 class="section-title">How it's built</h2>
+            <p class="text-muted">
+              The browser only sends letters and receives colors. The server
+              picks the word, checks guesses and stores every game in Postgres.
+            </p>
+
+            <figure class="case-diagram">
+              <div class="case-diagram-box flex-column">
+                <h3>Browser</h3>
+                <p>
+                  Sends letters, gets colors back. Keeps only the game id in
+                  localStorage.
+                </p>
+              </div>
+              <svg
+                class="case-diagram-arrow"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M4 9h16M14 4l5 5M20 15H4M10 20l-5-5"></path>
+              </svg>
+              <div class="case-diagram-box case-diagram-box-accent flex-column">
+                <h3>Server Functions</h3>
+                <p>
+                  <code>startGame</code>
+                  <code>submitGuess</code>
+                  <code>getGame</code>
+                  score guesses;
+                  <code>toGameState</code>
+                  hides the answer.
+                </p>
+              </div>
+              <svg
+                class="case-diagram-arrow"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true">
+                <path d="M4 9h16M14 4l5 5M20 15H4M10 20l-5-5"></path>
+              </svg>
+              <div class="case-diagram-box flex-column">
+                <h3>Neon Postgres</h3>
+                <p>
+                  <code>games</code>, <code>users</code> and
+                  <code>sessions</code> tables
+                </p>
+              </div>
+            </figure>
+
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>Server Functions, not API routes.</strong>
+                The browser calls <code>startGame</code>,
+                <code>submitGuess</code> and <code>getGame</code> directly, like
+                ordinary functions. Functions in each feature's
+                <code>actions.ts</code> are the only server code it can reach.
+              </li>
+              <li>
+                <strong>Colors are derived, not stored.</strong>
+                The database keeps just the answer and the guesses. Win, loss
+                and tile colors are calculated on every request, so they can't
+                fall out of sync.
+              </li>
+              <li>
+                <strong>The answer is hidden until the game ends.</strong>
+                One function,
+                <code>toGameState</code>, decides what the browser sees.
+              </li>
+              <li>
+                <strong>Raw SQL</strong>
+                through Neon's serverless driver. The
+                <code>games</code>
+                table has five columns.
+              </li>
+              <li>
+                <strong>Server-only code is fenced off.</strong>
+                Word lists and database access live under
+                <code>lib/server/</code>
+                and import
+                <code>server-only</code>, so the build fails if any of it
+                reaches the browser bundle.
+              </li>
+              <li>
+                <strong>One public file per feature.</strong>
+                Every export from a <code>'use server'</code> file is a public
+                endpoint, so those files hold only the actions, and helpers live
+                elsewhere.
+              </li>
+              <li>
+                <strong>Refresh-safe.</strong>
+                On load the app asks the server for the game whose id is stored
+                in localStorage, and starts a new game if it's missing or over
+                24 hours old.
+              </li>
+            </ul>
+          </section>
+
+          <section id="problems" class="case-section flex-column">
+            <h2 class="section-title">Problems I solved</h2>
+
+            <div class="case-problem flex-column">
+              <h3>Repeated letters</h3>
+              <p class="text-muted">
+                With the answer REACT, the guess EERIE gives only one colored E.
+                I count each letter in the answer, mark greens first and use up
+                their count, then hand out yellows only while letters remain.
+                Two linear passes, no nested loops.
+              </p>
+              <figure class="case-tiles">
+                <div class="case-tiles-rows flex-column">
+                  <div class="case-tiles-row flex-row">
+                    <span class="case-tiles-label">Answer</span>
+                    <span class="tile">R</span>
+                    <span class="tile">E</span>
+                    <span class="tile">A</span>
+                    <span class="tile">C</span>
+                    <span class="tile">T</span>
+                  </div>
+                  <div class="case-tiles-row flex-row">
+                    <span class="case-tiles-label">Guess</span>
+                    <span class="tile tile-absent">E</span>
+                    <span class="tile tile-correct">E</span>
+                    <span class="tile tile-present">R</span>
+                    <span class="tile tile-absent">I</span>
+                    <span class="tile tile-absent">E</span>
+                  </div>
+                </div>
+                <figcaption>
+                  REACT has one E. The green uses it up, so the other two E's
+                  stay gray.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>Two guesses at once</h3>
+              <p class="text-muted">
+                Two requests for the same game could both pass a "fewer than 6
+                guesses" check and push the game to 7. I moved the rule into the
+                database: the
+                <code>UPDATE</code>
+                only runs if the game still has room and isn't already won. If
+                no row comes back, another request finished first, so the server
+                returns the latest state instead of an error. Checked in
+                production: a 7th guess from a stale second tab is rejected, and
+                that tab catches up to the real game.
+              </p>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>Errors the player can act on</h3>
+              <p class="text-muted">
+                Next.js hides thrown error messages in production, so a player
+                would only see "Something went wrong." My rule: if a normal
+                player can cause it and act on it ("Not in word list"), return
+                it as data. If only a bug or tampering can cause it, throw.
+              </p>
+            </div>
+
+            <ul class="case-grid case-grid-3">
+              <li class="case-card flex-column">
+                <h3>Real words only</h3>
+                <p class="text-muted">
+                  12,972 allowed guesses, 2,315 of which can be answers, kept on
+                  the server in a
+                  <code>Set</code>
+                  for instant checks.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Slow networks</h3>
+                <p class="text-muted">
+                  A wave on the active row that waits 300 ms to appear and stays
+                  at least 600 ms once shown, so it never flickers. A fade with
+                  Reduce motion on.
+                </p>
+              </li>
+              <li class="case-card flex-column">
+                <h3>Accessibility</h3>
+                <p class="text-muted">
+                  Rows are named groups and tiles are announced as "R, present",
+                  so results never rely on color alone.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section id="accounts" class="case-section flex-column">
+            <div class="case-heading-row flex-row">
+              <h2 class="section-title">Designing accounts from scratch</h2>
+              <span class="case-status pill flex-row">In progress</span>
+            </div>
+            <p class="text-muted">
+              I designed authentication before writing any of it, like a design
+              review: reason through each decision and draw every flow (sign up,
+              sign in, signed-out guess, signed-in guess, sign out) as a
+              sequence diagram.
+            </p>
+
+            <div class="case-progress case-card flex-column">
+              <div class="case-progress-header flex-row">
+                <h3>Sign-up works on the server; sign-in is next</h3>
+                <span class="mono-meta">5 of 8</span>
+              </div>
+              <progress max="8" value="5">5 of 8 steps done</progress>
+              <ul class="case-checklist">
+                <li class="is-done">Database tables for users and sessions</li>
+                <li class="is-done">
+                  Email normalizing and sign-up validation
+                </li>
+                <li class="is-done">Password hashing and checking</li>
+                <li class="is-done">Sessions and secure cookies</li>
+                <li class="is-done">
+                  Sign-up on the server, claiming a guest game
+                </li>
+                <li>Sign in and sign out</li>
+                <li>Ownership checks on every guess</li>
+                <li>Sign-up and sign-in forms</li>
+              </ul>
+            </div>
+
+            <p class="text-muted">
+              Decisions made so far. Some, like sliding sessions and same-timing
+              sign-in errors, aren't built yet.
+            </p>
+
+            <div class="case-table-wrap">
+              <table class="case-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Decision</th>
+                    <th scope="col">What I chose</th>
+                    <th scope="col">Why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Login method</th>
+                    <td>Email and password</td>
+                    <td>The best way to learn what's under the hood</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sessions</th>
+                    <td>
+                      Rows in a
+                      <code>sessions</code>
+                      table, not signed cookies
+                    </td>
+                    <td>
+                      Logging out or revoking a session takes effect instantly
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Session length</th>
+                    <td>7 days, sliding</td>
+                    <td>
+                      People play daily; an active player never gets logged out
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Cookie</th>
+                    <td>
+                      <code>HttpOnly</code>
+                      <code>Secure</code>
+                      <code>SameSite=Lax</code>
+                    </td>
+                    <td>
+                      JavaScript can't read it, it's HTTPS only, other sites
+                      can't use it
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Password hashing</th>
+                    <td>
+                      Node's built-in
+                      <code>scrypt</code>, a random salt per user, constant-time
+                      compare
+                    </td>
+                    <td>
+                      Built into Node, so there's no extra package to install.
+                      OWASP recommends it when Argon2id isn't available
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Password rules</th>
+                    <td>At least 8 characters, no symbol rules</td>
+                    <td>Follows current NIST guidance</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sign-in errors</th>
+                    <td>
+                      "Incorrect email or password" for both cases, same timing
+                    </td>
+                    <td>Doesn't reveal which emails have accounts</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Guests</th>
+                    <td>
+                      Login is optional; a guest game is claimed on sign-up
+                    </td>
+                    <td>
+                      Nobody loses a game in progress by creating an account
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Duplicate emails</th>
+                    <td>
+                      <code>ON CONFLICT DO NOTHING</code>
+                      on a normalized email
+                    </td>
+                    <td>One query, and no race between "check" and "insert"</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted">
+              Next is the ownership rule: a game with no owner can be played by
+              anyone with its random id, and an owned game only by its owner.
+              Until that's built, anyone with a game's id can guess on it.
+            </p>
+          </section>
+
+          <section id="testing" class="case-section flex-column">
+            <h2 class="section-title">Testing and workflow</h2>
+            <ul class="case-grid case-grid-3">
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">139</span>
+                <span class="case-stat-label">tests passing</span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">4</span>
+                <span class="case-stat-label">
+                  checks on every commit: tests, types, lint, build
+                </span>
+              </li>
+              <li class="case-card case-stat flex-column">
+                <span class="case-stat-value">2</span>
+                <span class="case-stat-label">
+                  databases: a dev Neon branch keeps test users out of
+                  production
+                </span>
+              </li>
+            </ul>
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>Component tests</strong>
+                play whole games the way a player would: typing, warnings,
+                winning, losing, starting again.
+              </li>
+              <li>
+                <strong>Server tests</strong>
+                mock the database so each test controls exactly which rows come
+                back. That's how the suite tests two guesses arriving at once.
+              </li>
+              <li>
+                <strong>Timing tests</strong>
+                use fake timers for the loading wave's delay and minimum display
+                time.
+              </li>
+              <li>
+                <strong>Deploys</strong>
+                go to production on every push to
+                <code>main</code>, and I check each feature on the live site,
+                not just localhost.
+              </li>
+            </ul>
+          </section>
+
+          <section id="ai" class="case-section flex-column">
+            <h2 class="section-title">How I used AI</h2>
+            <p class="text-muted">
+              I used AI as a pairing partner, set up to teach rather than write
+              code for me. I drove: I wrote the feature code and made the
+              decisions. It explained terms plainly, went one small step at a
+              time, and only offered code when I asked or got stuck. It asked
+              questions, reviewed my work and filled gaps in areas I hadn't done
+              end to end.
+            </p>
+            <ul class="case-points flex-column text-muted">
+              <li>
+                <strong>Auth design.</strong>
+                I had some auth experience, but not enough to build it securely
+                alone. I went through it with AI like a design review: it asked
+                one question at a time, I reasoned out my answer first, then it
+                filled gaps and explained the tradeoffs. I drew every flow in
+                Excalidraw myself as we went. It recommended; I chose.
+              </li>
+              <li>
+                <strong>Decisions that went against the easy path.</strong>
+                I turned down Neon Auth and chose raw SQL over an ORM, so I'd
+                learn what's underneath.
+              </li>
+              <li>
+                <strong>CSS I hadn't used in years.</strong>
+                It walked me through keyframe animation for the loading wave and
+                accessibility details like the reduced-motion fallback. It
+                helped a lot, but I wrote the code.
+              </li>
+              <li>
+                <strong>Tests.</strong>
+                AI wrote all 139 tests.
+              </li>
+            </ul>
+            <div class="case-problem flex-column">
+              <h3>What it caught, and what it missed</h3>
+              <p class="text-muted">
+                It noticed my local environment was writing to the production
+                database, which led to a separate dev branch. It didn't catch a
+                <code>'use server'</code> file exporting a non-async helper;
+                only the build did. That's why no single tool, AI included, gets
+                the last word.
+              </p>
+            </div>
+          </section>
+
+          <section id="learned" class="case-section flex-column">
+            <h2 class="section-title">What I learned</h2>
+            <ol class="case-lessons">
+              <li class="flex-row">
+                <span class="mono-meta">01</span>
+                <div class="flex-column">
+                  <h3>Put the rule where the data is.</h3>
+                  <p class="text-muted">
+                    A check in code can be raced; a condition in the SQL
+                    <code>WHERE</code>
+                    can't.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">02</span>
+                <div class="flex-column">
+                  <h3>Anything in the browser is public.</h3>
+                  <p class="text-muted">
+                    Including the answer in memory and every exported Server
+                    Function, which anyone can call with any arguments.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">03</span>
+                <div class="flex-column">
+                  <h3>Store less, derive more.</h3>
+                  <p class="text-muted">
+                    Saving only answers and guesses removed a whole class of
+                    out-of-sync bugs.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">04</span>
+                <div class="flex-column">
+                  <h3>Design before code.</h3>
+                  <p class="text-muted">
+                    Drawing the auth flows first meant the code mostly followed
+                    the diagrams.
+                  </p>
+                </div>
+              </li>
+              <li class="flex-row">
+                <span class="mono-meta">05</span>
+                <div class="flex-column">
+                  <h3>Only hide what depends on secrets.</h3>
+                  <p class="text-muted">
+                    "Password must be at least 8 characters" only describes what
+                    was typed, so it's safe to show. Sign-in uses "Incorrect
+                    email or password" for every failure, so it doesn't reveal
+                    which emails have accounts. Sign-up still reveals it, for
+                    now; that's a known gap I chose to leave.
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </section>
+
+          <section id="next" class="case-section flex-column">
+            <h2 class="section-title">What's next</h2>
+            <ul class="case-next-list flex-column text-muted">
+              <li>
+                Results history per player: wins, losses and unfinished games
+              </li>
+              <li>Stats like win rate and streaks</li>
+              <li>
+                Rate limiting sign-in attempts and stronger password hashing
+                settings
+              </li>
+            </ul>
+          </section>
+        </article>
+      </div>
+
+      <div class="container">
+        <a
+          href="https://www.repopulse.tech"
+          target="_blank"
+          class="case-next-project flex-row">
+          <img src="/assets/repopulse-icon.svg" alt="" />
+          <span class="flex-column">
+            <span class="mono-meta">Next project</span>
+            <span class="case-next-project-name">RepoPulse</span>
+          </span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"></path>
+          </svg>
+        </a>
+      </div>
+    </main>
+    <footer class="container">
+      <div class="footer-inner flex-row">
+        <span class="footer-name">Phil Warner</span>
+        <nav aria-label="Footer">
+          <ul class="footer-links flex-row">
+            <li>
+              <a
+                class="text-muted"
+                href="https://github.com/warnerp18"
+                target="_blank">
+                GitHub
+              </a>
+            </li>
+            <li>
+              <a
+                class="text-muted"
+                href="https://www.linkedin.com/in/phil-warner"
+                target="_blank">
+                LinkedIn
+              </a>
+            </li>
+            <li class="footer-email flex-row">
+              <a class="text-muted" href="mailto:contact@philwarner.dev">
+                Email
+              </a>
+              <button
+                type="button"
+                class="copy-button"
+                data-email="contact@philwarner.dev"
+                aria-label="Copy email address">
+                <svg
+                  class="copy-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true">
+                  <rect x="9" y="9" width="12" height="12" rx="2"></rect>
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <svg
+                  class="check-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true">
+                  <path d="M4 12l5 5L20 6" pathLength="1"></path>
+                </svg>
+                <span class="tooltip" aria-hidden="true">Copy email</span>
+              </button>
+              <span class="sr-only copy-status" aria-live="polite"></span>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -34,6 +34,7 @@
   --space-7: 28px;
   --space-8: 32px;
   --space-9: 36px;
+  --space-12: 48px;
   --space-18: 72px;
   --space-20: 80px;
   --space-24: 96px;
@@ -411,14 +412,6 @@ header nav {
   @media (min-width: 980px) {
     margin-top: 0;
   }
-}
-
-.hero .eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--text-subtle);
 }
 
 .hero h1 {
