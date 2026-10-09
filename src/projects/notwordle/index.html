@@ -263,7 +263,7 @@
           </div>
           <div>
             <dt>Tests</dt>
-            <dd>139 passing</dd>
+            <dd>192 passing</dd>
           </div>
         </dl>
       </section>
@@ -346,8 +346,8 @@
               <div class="case-diagram-box flex-column">
                 <h3>Browser</h3>
                 <p>
-                  Sends letters, gets colors back. Keeps only the game id in
-                  localStorage.
+                  Sends letters, gets colors back. A guest's game id lives in an
+                  HttpOnly cookie that scripts can't read.
                 </p>
               </div>
               <svg
@@ -437,9 +437,9 @@
               </li>
               <li>
                 <strong>Refresh-safe.</strong>
-                On load the app asks the server for the game whose id is stored
-                in localStorage, and starts a new game if it's missing or over
-                24 hours old.
+                On load the server finds the current game, the newest unfinished
+                game from the last 24 hours, and sends it with the page. It
+                works across devices.
               </li>
             </ul>
           </section>
@@ -532,6 +532,39 @@
                 </p>
               </li>
             </ul>
+            <div class="case-problem flex-column">
+              <h3>A hydration error for returning guests</h3>
+              <p class="text-muted">
+                When a guest came back, React showed a hydration error. The page
+                is drawn twice, first on the server and then in the browser, and
+                React expects both to match. They didn't. The guest's game id
+                was saved in localStorage, which only the browser can see. So
+                the server thought every visitor was new and drew the sign-in
+                box, while the browser found the saved game and didn't.
+              </p>
+              <p class="text-muted">
+                The fix was to save the game id in a cookie instead. The browser
+                sends cookies to the server with every request, so the server
+                now knows who you are and draws the right page the first time.
+                The cookie is
+                <code>HttpOnly</code>, so scripts can't read it, and
+                localStorage is gone from the app.
+              </p>
+            </div>
+
+            <div class="case-problem flex-column">
+              <h3>The keyboard below the screen on phones</h3>
+              <p class="text-muted">
+                Measured in Safari Web Inspector, the keyboard spilled 65px
+                below the screen on iPhones. The board now shrinks to fit the
+                space left, using a CSS size container:
+                <code>container-type: size</code>
+                and
+                <code>cqh</code>
+                units. Short phones get tighter spacing, and the keys never
+                shrink. Working on localhost, not live yet.
+              </p>
+            </div>
           </section>
 
           <section id="accounts" class="case-section flex-column">
@@ -548,10 +581,10 @@
 
             <div class="case-progress case-card flex-column">
               <div class="case-progress-header flex-row">
-                <h3>Sign-up works on the server; sign-in is next</h3>
-                <span class="mono-meta">5 of 8</span>
+                <h3>Accounts work; sliding sessions are next</h3>
+                <span class="mono-meta">8 of 9</span>
               </div>
-              <progress max="8" value="5">5 of 8 steps done</progress>
+              <progress max="9" value="8">8 of 9 steps done</progress>
               <ul class="case-checklist">
                 <li class="is-done">Database tables for users and sessions</li>
                 <li class="is-done">
@@ -562,15 +595,16 @@
                 <li class="is-done">
                   Sign-up on the server, claiming a guest game
                 </li>
-                <li>Sign in and sign out</li>
-                <li>Ownership checks on every guess</li>
-                <li>Sign-up and sign-in forms</li>
+                <li class="is-done">Sign in and sign out</li>
+                <li class="is-done">Ownership checks on every guess</li>
+                <li class="is-done">Sign-up and sign-in forms</li>
+                <li>Sliding session expiry</li>
               </ul>
             </div>
 
             <p class="text-muted">
-              Decisions made so far. Some, like sliding sessions and same-timing
-              sign-in errors, aren't built yet.
+              The decisions behind it. Sliding sessions are the only one not
+              built yet.
             </p>
 
             <div class="case-table-wrap">
@@ -593,7 +627,7 @@
                     <td>
                       Rows in a
                       <code>sessions</code>
-                      table, not signed cookies
+                      table, not signed cookies; the cookie holds a random id
                     </td>
                     <td>
                       Logging out or revoking a session takes effect instantly
@@ -601,9 +635,11 @@
                   </tr>
                   <tr>
                     <th scope="row">Session length</th>
-                    <td>7 days, sliding</td>
+                    <td>7 days; sliding expiry is next</td>
                     <td>
-                      People play daily; an active player never gets logged out
+                      Next, a guess with less than half the 7 days left will
+                      push the expiry forward, so an active player never gets
+                      logged out
                     </td>
                   </tr>
                   <tr>
@@ -638,14 +674,17 @@
                   <tr>
                     <th scope="row">Sign-in errors</th>
                     <td>
-                      "Incorrect email or password" for both cases, same timing
+                      "Incorrect email or password" for both cases. An unknown
+                      email still checks the password against a dummy hash, so
+                      both take the same time
                     </td>
                     <td>Doesn't reveal which emails have accounts</td>
                   </tr>
                   <tr>
                     <th scope="row">Guests</th>
                     <td>
-                      Login is optional; a guest game is claimed on sign-up
+                      Login is optional; a guest's game has no owner until
+                      sign-up or sign-in claims it
                     </td>
                     <td>
                       Nobody loses a game in progress by creating an account
@@ -659,22 +698,131 @@
                     </td>
                     <td>One query, and no race between "check" and "insert"</td>
                   </tr>
+                  <tr>
+                    <th scope="row">Ownership</th>
+                    <td>
+                      A game without an owner is open to anyone with its id, an
+                      unguessable uuid. An owned game only accepts guesses from
+                      its owner
+                    </td>
+                    <td>
+                      The check runs before any game data is sent back, so a
+                      stranger never sees a finished game's answer
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sign out</th>
+                    <td>
+                      <code>logout()</code>
+                      takes no arguments and only uses the caller's own session
+                      cookie
+                    </td>
+                    <td>
+                      An email argument would prove nothing about who is calling
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Current game</th>
+                    <td>The newest unfinished game from the last 24 hours</td>
+                    <td>
+                      Works across devices. Older unfinished games are kept as
+                      "abandoned" for the planned results history
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Game length</th>
+                    <td>
+                      One 24-hour value, shared by the SQL queries and the guest
+                      cookie's expiry
+                    </td>
+                    <td>
+                      Fixed a bug where the guest cookie had copied the 7-day
+                      session length
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
             <p class="text-muted">
-              Next is the ownership rule: a game with no owner can be played by
-              anyone with its random id, and an owned game only by its owner.
-              Until that's built, anyone with a game's id can guess on it.
+              On an owned game, a signed-out caller gets "Log in to keep
+              playing", and a different account gets "This game belongs to
+              another account. Refresh to load yours."
             </p>
+
+            <figure class="case-flowchart flex-column">
+              <a href="/assets/notwordle-ownership.svg" target="_blank">
+                <img
+                  src="/assets/notwordle-ownership.svg"
+                  width="1111"
+                  height="1225"
+                  loading="lazy"
+                  alt="Flowchart of the ownership check. A game with no owner is a guest game, so the guess goes through. If the game has an owner and the player isn't logged in, the result is the error 'Log in to keep playing'. If a different account is logged in, the result is the error 'This game belongs to another account. Refresh to load yours.' Only the owner's guess goes through." />
+              </a>
+              <figcaption class="text-muted">
+                What the server checks before it accepts a guess.
+                <a
+                  href="https://github.com/warnerp18/notwordle/blob/main/docs/auth-design.svg"
+                  target="_blank"
+                  class="case-flowchart-link arrow-link">
+                  See all the auth flows
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M7 17L17 7M8 7h9v9"></path>
+                  </svg>
+                </a>
+              </figcaption>
+            </figure>
+
+            <div class="case-problem flex-column">
+              <h3>The sign-in box</h3>
+              <ul class="case-points flex-column text-muted">
+                <li>
+                  <strong>One box, two forms</strong>
+                  (sign in and sign up) and a "Play as guest" option. A game is
+                  only created after the player chooses, so page loads no longer
+                  create empty game rows.
+                </li>
+                <li>
+                  <strong
+                    >Opened with <code>show()</code>, not
+                    <code>showModal()</code>.</strong
+                  >
+                  <code>showModal()</code>
+                  put the box above 1Password's autofill menu, which then
+                  couldn't be clicked.
+                </li>
+                <li>
+                  <strong>Forms keep what was typed after an error.</strong>
+                  They submit through
+                  <code>onSubmit</code>
+                  and
+                  <code>startTransition</code>, because React's
+                  <code>action={}</code>
+                  clears every field, even on an error.
+                </li>
+                <li>
+                  <strong>Small touches.</strong>
+                  Each password field has a show/hide button, and the signed-in
+                  email shows top right with a Sign out button.
+                </li>
+              </ul>
+            </div>
           </section>
 
           <section id="testing" class="case-section flex-column">
             <h2 class="section-title">Testing and workflow</h2>
             <ul class="case-grid case-grid-3">
               <li class="case-card case-stat flex-column">
-                <span class="case-stat-value">139</span>
-                <span class="case-stat-label">tests passing</span>
+                <span class="case-stat-value">192</span>
+                <span class="case-stat-label">tests passing in 14 suites</span>
               </li>
               <li class="case-card case-stat flex-column">
                 <span class="case-stat-value">4</span>
@@ -702,6 +850,11 @@
                 back. That's how the suite tests two guesses arriving at once.
               </li>
               <li>
+                <strong>Auth tests</strong>
+                use a fake cookie jar, and ownership tests check who can guess
+                on which game.
+              </li>
+              <li>
                 <strong>Timing tests</strong>
                 use fake timers for the loading wave's delay and minimum display
                 time.
@@ -719,9 +872,9 @@
             <h2 class="section-title">How I used AI</h2>
             <p class="text-muted">
               I used AI as a pairing partner, set up to teach rather than write
-              code for me. I drove: I wrote the feature code and made the
-              decisions. It explained terms plainly, went one small step at a
-              time, and only offered code when I asked or got stuck. It asked
+              code for me. I drove: I wrote most of the feature code and made
+              the decisions. It explained terms plainly, went one small step at
+              a time, and only offered code when I asked or got stuck. It asked
               questions, reviewed my work and filled gaps in areas I hadn't done
               end to end.
             </p>
@@ -747,7 +900,15 @@
               </li>
               <li>
                 <strong>Tests.</strong>
-                AI wrote all 139 tests.
+                AI wrote all 192 tests.
+              </li>
+              <li>
+                <strong>When it built too much.</strong>
+                Once my wording sounded like "build it all", AI built the
+                sign-in form and the page-load session lookup. I then went
+                through each part interview-style until I could explain it
+                myself. After that we agreed it checks with me before any
+                non-trivial change.
               </li>
             </ul>
             <div class="case-problem flex-column">
@@ -756,8 +917,9 @@
                 It noticed my local environment was writing to the production
                 database, which led to a separate dev branch. It didn't catch a
                 <code>'use server'</code> file exporting a non-async helper;
-                only the build did. That's why no single tool, AI included, gets
-                the last word.
+                only the build did. The hydration bug came from code it wrote,
+                and I caught it in the browser, not with tests. That's why no
+                single tool, AI included, gets the last word.
               </p>
             </div>
           </section>
@@ -819,21 +981,41 @@
                   </p>
                 </div>
               </li>
+              <li class="flex-row">
+                <span class="mono-meta">06</span>
+                <div class="flex-column">
+                  <h3>The first render has to match the server's.</h3>
+                  <p class="text-muted">
+                    So data that only exists in the browser can only be read
+                    after hydration.
+                  </p>
+                </div>
+              </li>
             </ol>
           </section>
 
           <section id="next" class="case-section flex-column">
             <h2 class="section-title">What's next</h2>
             <ul class="case-next-list flex-column text-muted">
+              <li>Sliding session expiry</li>
               <li>
-                Results history per player: wins, losses and unfinished games
+                Results history per player: won, lost or unfinished, worked out
+                from the guesses and
+                <code>created_at</code>, with no new column
               </li>
               <li>Stats like win rate and streaks</li>
-              <li>
-                Rate limiting sign-in attempts and stronger password hashing
-                settings
-              </li>
             </ul>
+            <p class="text-muted">
+              Postponed on purpose: rate limiting sign-in attempts, storing a
+              hash of the session id, and stronger
+              <code>scrypt</code>
+              settings plus a pepper (a secret mixed into every hash).
+            </p>
+            <p class="case-note">
+              No email verification and no password reset, by choice. Both need
+              a paid email service, which isn't worth it for a portfolio app.
+              With real users I'd add them with a transactional email provider.
+            </p>
           </section>
         </article>
       </div>

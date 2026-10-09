@@ -538,6 +538,37 @@
   border-top: var(--border-width) solid var(--border);
 }
 
+/* Ownership flowchart. The export has a white background, so it sits on a white panel in both themes. */
+.case-flowchart {
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.case-flowchart img {
+  display: block;
+  width: min(100%, 520px);
+  height: auto;
+  margin-inline: auto;
+}
+
+.case-flowchart > a {
+  display: block;
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+}
+
+.case-flowchart figcaption {
+  font-size: var(--text-sm);
+}
+
+/* Sits inline after the caption text, so it reads as the next sentence. */
+.case-flowchart-link {
+  display: inline-flex;
+  color: var(--accent);
+}
+
 /* ==== Testing ==== */
 
 .case-stat {
